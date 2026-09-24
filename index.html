@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meu Treino: Geração Rápida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f5f2; --surface: #ffffff; --ink: #17181c; --muted: #6b6f76;
+  --line: #e1e3de; --accent: #ff5a2e; --accent-ink: #17181c; --done: #1c9c6b; --soft: #eef0ea;
+  --warn-bg: #fdece2; --warn-ink: #8a3f14;
+  --display: "Space Grotesk", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121316; --surface: #1b1d22; --ink: #f3f4f2; --muted: #9a9ea6;
+    --line: #2b2e35; --accent: #ff7a4d; --accent-ink: #121316; --done: #35c98d; --soft: #20232a;
+    --warn-bg: #2c2015; --warn-ink: #f2a877;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121316; --surface: #1b1d22; --ink: #f3f4f2; --muted: #9a9ea6;
+  --line: #2b2e35; --accent: #ff7a4d; --accent-ink: #121316; --done: #35c98d; --soft: #20232a;
+  --warn-bg: #2c2015; --warn-ink: #f2a877;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; -webkit-text-size-adjust: 100%; }
+.wrap { max-width: 560px; margin: 0 auto; padding: 16px 16px 96px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+h1 { font-family: var(--display); font-size: 23px; margin: 0; letter-spacing: -0.02em; line-height: 1.15; }
+.tagline { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin: 2px 0 0; }
+.top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.btn { border: 1.5px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 12px; font-weight: 600; font-size: 14px; min-height: 40px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.danger { color: #c0392b; }
+.btn.block { width: 100%; }
+.btn:focus-visible, .tab:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, .check:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.seg { display: flex; gap: 6px; background: var(--soft); border-radius: 10px; padding: 4px; margin-bottom: 14px; }
+.seg button { flex: 1; border: none; background: transparent; border-radius: 7px; padding: 9px 8px; font-weight: 700; font-size: 14px; color: var(--muted); }
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: 1 0 auto; min-width: 58px; border: 1.5px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 10px; text-align: center; font-weight: 600; }
+.tab small { display: block; font-weight: 500; color: var(--muted); font-size: 11px; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab[aria-selected="true"] small { color: var(--bg); opacity: .75; }
+
+.day-head { margin-bottom: 12px; }
+.day-title { font-family: var(--display); font-size: 22px; margin: 0 0 8px; }
+.progress { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--done); border-radius: 99px; transition: width .25s ease; }
+.progress-label { font-size: 13px; color: var(--muted); margin-top: 6px; display: flex; justify-content: space-between; }
+
+.ex { background: var(--surface); border: 1.5px solid var(--line); border-left: 4px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+.ex.done { border-color: var(--line); border-left-color: var(--done); }
+.ex.done .ex-name { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--muted); }
+.ex-row { display: flex; gap: 12px; align-items: flex-start; }
+.check { flex: 0 0 auto; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--line); background: transparent; display: grid; place-items: center; padding: 0; margin-top: 1px; }
+.ex.done .check { background: var(--done); border-color: var(--done); }
+.check svg { width: 16px; height: 16px; stroke: var(--surface); opacity: 0; }
+.ex.done .check svg { opacity: 1; }
+.ex-main { flex: 1; min-width: 0; }
+.ex-name { font-weight: 600; font-size: 17px; margin: 0; }
+.ex-sets { color: var(--accent); font-weight: 600; font-size: 14px; }
+.ex-desc { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+.load { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.load input { flex: 1; min-width: 0; }
+.ex.cardio { background: var(--soft); border-left-color: var(--accent); }
+
+input[type=text], input[type=number], textarea, select { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 7px; padding: 8px 10px; }
+textarea { resize: vertical; min-height: 64px; }
+.edit-fields { display: grid; gap: 8px; margin-top: 4px; }
+.edit-bar { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.edit-bar .btn { min-height: 36px; padding: 6px 10px; }
+
+.footer-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.panel { background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 16px; }
+.panel h2 { font-family: var(--display); font-size: 18px; margin: 0 0 6px; }
+.panel p { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
+.panel textarea { min-height: 120px; font-size: 13px; }
+.panel .row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+[hidden] { display: none !important; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-size: 14px; font-weight: 600; z-index: 10; max-width: 90%; }
+@media (prefers-reduced-motion: reduce) { .progress > i { transition: none; } }
+
+.ex-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.btn.small { min-height: 34px; padding: 5px 10px; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; color: var(--ink); }
+.btn.small[aria-expanded="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.swap { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.swap-title { margin: 0 0 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.swap-opt { display: block; width: 100%; text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; }
+.swap-opt b { display: block; font-size: 15px; }
+.swap-opt span { display: block; font-size: 13px; color: var(--muted); }
+.swap-opt:active { background: var(--soft); }
+.swap-opt:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* onboarding */
+.overlay { position: fixed; inset: 0; background: var(--bg); z-index: 30; overflow-y: auto; }
+.overlay-inner { max-width: 480px; margin: 0 auto; padding: calc(28px + env(safe-area-inset-top,0px)) 18px calc(28px + env(safe-area-inset-bottom,0px)); }
+.overlay h1 { margin-bottom: 4px; }
+.overlay .lead { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+.field { margin-bottom: 16px; }
+.field label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.field .hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.choice { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.choice button { border: 1.5px solid var(--line); background: var(--surface); border-radius: 8px; padding: 10px 8px; font-weight: 600; font-size: 13px; text-align: center; }
+.choice button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.overlay .err { color: #c0392b; font-size: 13px; margin: -8px 0 14px; }
+
+/* diet */
+.diet-hero { text-align: center; padding: 14px 0 6px; }
+.diet-kcal { font-family: var(--display); font-size: 40px; }
+.diet-kcal small { display: block; font-family: var(--body); font-weight: 600; font-size: 13px; color: var(--muted); }
+.diet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+.diet-card { background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 6px; text-align: center; }
+.diet-card b { display: block; font-size: 18px; }
+.diet-card span { font-size: 12px; color: var(--muted); }
+.disclaimer { background: var(--warn-bg); color: var(--warn-ink); border-radius: 8px; padding: 10px 12px; font-size: 13px; margin-top: 14px; }
+.profile-recap { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.meal-block { margin-top: 14px; }
+.meal-block h3 { font-family: var(--display); font-size: 16px; margin: 0 0 4px; }
+.meal-opt { background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app" hidden>
+  <header>
+    <div><h1>Meu Treino</h1><p class="tagline">Geração Rápida</p></div>
+    <div class="top-actions">
+      <button class="btn" id="btnProfile" type="button">Perfil</button>
+      <button class="btn" id="btnShare" type="button">Compartilhar</button>
+      <button class="btn" id="btnEdit" type="button">Editar</button>
+    </div>
+  </header>
+
+  <div class="seg" role="tablist" aria-label="Seção">
+    <button type="button" id="segTreino" aria-selected="true">Treino</button>
+    <button type="button" id="segDieta" aria-selected="false">Dieta</button>
+  </div>
+
+  <div id="viewTreino">
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Dias da semana"></nav>
+    <main id="day"></main>
+
+    <div class="footer-actions">
+      <button class="btn" id="btnReset" type="button">Novo treino (limpar marcados)</button>
+      <button class="btn" id="btnBackup" type="button">Backup</button>
+    </div>
+
+    <section class="panel" id="backupPanel" hidden>
+      <h2>Backup do treino</h2>
+      <p>Copie este texto para guardar ou enviar. Quem receber cola aqui e toca em Importar para ter o mesmo treino.</p>
+      <textarea id="backupText" aria-label="Texto de backup" spellcheck="false"></textarea>
+      <div class="row">
+        <button class="btn" id="btnCopyBackup" type="button">Copiar</button>
+        <button class="btn primary" id="btnImport" type="button">Importar</button>
+        <button class="btn danger" id="btnRestore" type="button">Gerar treino padrão</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="viewDieta" hidden></div>
+</div>
+
+<div class="overlay" id="onboarding" hidden>
+  <div class="overlay-inner">
+    <h1>Vamos montar seu treino</h1>
+    <p class="lead">Responda rapidinho para gerarmos um treino e uma dieta estimada para você.</p>
+    <form id="profileForm">
+      <div class="field">
+        <label>Sexo</label>
+        <div class="choice" id="fSexo">
+          <button type="button" data-v="F" aria-pressed="true">Feminino</button>
+          <button type="button" data-v="M" aria-pressed="false">Masculino</button>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label for="fIdade">Idade</label>
+          <input type="number" id="fIdade" min="14" max="90" inputmode="numeric" placeholder="anos" required>
+        </div>
+        <div class="field">
+          <label for="fAltura">Altura (cm)</label>
+          <input type="number" id="fAltura" min="120" max="220" inputmode="numeric" placeholder="ex.: 160" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fPeso">Peso (kg)</label>
+        <input type="number" id="fPeso" min="30" max="250" step="0.1" inputmode="decimal" placeholder="ex.: 54" required>
+      </div>
+      <div class="field">
+        <label>Nível de atividade fora do treino</label>
+        <div class="choice" id="fAtividade">
+          <button type="button" data-v="sedentario" aria-pressed="true">Sedentária</button>
+          <button type="button" data-v="leve" aria-pressed="false">Leve</button>
+          <button type="button" data-v="moderado" aria-pressed="false">Moderada</button>
+          <button type="button" data-v="ativo" aria-pressed="false">Ativa</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Objetivo</label>
+        <div class="choice c3" id="fObjetivo">
+          <button type="button" data-v="ganhar" aria-pressed="true">Ganhar massa</button>
+          <button type="button" data-v="manter" aria-pressed="false">Manter / tonificar</button>
+          <button type="button" data-v="emagrecer" aria-pressed="false">Emagrecer</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>No que você quer focar o treino</label>
+        <div class="choice" id="fFoco">
+          <button type="button" data-v="gluteo" aria-pressed="true">Glúteo e pernas</button>
+          <button type="button" data-v="corpo" aria-pressed="false">Corpo todo equilibrado</button>
+          <button type="button" data-v="superior" aria-pressed="false">Parte superior</button>
+          <button type="button" data-v="pernas" aria-pressed="false">Pernas (geral)</button>
+        </div>
+      </div>
+      <p class="err" id="formErr" hidden>Preencha idade, altura e peso com números válidos.</p>
+      <button class="btn primary block" type="submit" id="btnGerar">Gerar meu treino e dieta</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function () {
+  var KEY = "meu-treino-app-v2";
+  var uid = function () { return Math.random().toString(36).slice(2, 9); };
+
+  var POOLS = {
+    quadUni: [
+      ["Agachamento búlgaro", "Pé de trás apoiado num banco. Desça o joelho da frente até a coxa ficar paralela ao chão e suba empurrando com o calcanhar."],
+      ["Step up", "Suba num banco ou caixa com uma perna, sem impulso da outra, e desça controlando."],
+      ["Afundo no Smith", "Com a barra do Smith nas costas, dê um passo à frente, desça o joelho de trás quase ao chão e volte."],
+      ["Afundo caminhando", "Passo largo à frente, desça o joelho de trás quase ao chão e alterne as pernas."],
+      ["Avanço reverso", "Dê um passo para trás, desça o joelho quase ao chão e volte à posição inicial."],
+      ["Leg press unilateral", "Igual ao leg press, mas com uma perna só na plataforma."]
+    ],
+    quadBig: [
+      ["Leg press 45° profundo", "Pés altos na plataforma. Desça até os joelhos chegarem perto do peito, sem descolar o quadril do banco."],
+      ["Hack squat", "Costas apoiadas na máquina, pés um pouco à frente. Desça até as coxas ficarem paralelas ou abaixo e suba pelo calcanhar."],
+      ["Agachamento no Smith", "Barra do Smith nas costas, pés um pouco à frente. Desça até o quadril passar dos joelhos e suba."],
+      ["Agachamento goblet", "Segure um halter junto ao peito e agache fundo, mantendo o tronco ereto."],
+      ["Agachamento livre profundo", "Barra nas costas. Desça até o quadril passar dos joelhos, mantendo o tronco firme."],
+      ["Leg press horizontal", "Sentada na máquina horizontal, empurre a plataforma com os pés na largura dos ombros e volte devagar."]
+    ],
+    quadIso: [
+      ["Cadeira extensora", "Sentada, estenda os joelhos até a perna ficar reta e desça devagar."],
+      ["Extensora unilateral", "Igual à extensora, mas uma perna de cada vez."],
+      ["Leg press pés baixos e juntos", "Pés baixos na plataforma, próximos um do outro. Desça controlando e suba sem travar os joelhos."]
+    ],
+    abd: [
+      ["Abdução na polia em pé", "Caneleira no tornozelo. Afaste a perna para o lado sem inclinar o tronco."],
+      ["Cadeira abdutora", "Sentada, abra as pernas contra a resistência e volte devagar."],
+      ["Abdução apoiada no banco", "De lado ou de quatro, com caneleira, suba a perna abrindo para o lado."],
+      ["Abdução com mini band", "Elástico acima dos joelhos ou tornozelos. Deitada de lado, abra a perna de cima e volte devagar."],
+      ["Caminhada lateral com elástico", "Elástico nas pernas, joelhos levemente flexionados. Dê passos laterais mantendo a tensão."]
+    ],
+    hip: [
+      ["Hip thrust (elevação pélvica)", "Costas num banco e barra sobre o quadril. Suba o quadril apertando o glúteo no topo."],
+      ["Hip thrust no Smith", "Igual ao hip thrust, com a barra guiada do Smith, mais estável."],
+      ["Hip thrust na máquina", "Sentada ou reclinada na máquina, empurre o quadril para cima apertando o glúteo."],
+      ["Ponte de glúteo com barra", "Deitada no chão com a barra sobre o quadril, suba o quadril e aperte o glúteo."],
+      ["Elevação pélvica com halter", "Costas no banco e um halter sobre o quadril. Suba apertando o glúteo."]
+    ],
+    hipUni: [
+      ["Hip thrust unilateral", "Igual ao hip thrust, mas com uma perna só no chão."],
+      ["Ponte unilateral no banco", "Costas no banco, uma perna esticada. Suba o quadril com a perna de apoio."],
+      ["Ponte unilateral no chão", "Deitada, um pé no chão e a outra perna esticada. Suba o quadril e aperte o glúteo."]
+    ],
+    hinge: [
+      ["Stiff / RDL", "Em pé com barra ou halteres, empurre o quadril para trás com joelhos levemente flexionados até sentir o posterior esticar, e volte."],
+      ["Stiff com halteres", "Halteres à frente das coxas. Empurre o quadril para trás, desça até o meio da canela e volte."],
+      ["Stiff no Smith", "Barra do Smith à frente das coxas. Empurre o quadril para trás e volte apertando o glúteo."],
+      ["Stiff unilateral", "Em uma perna só, incline o tronco à frente com a outra perna para trás, e volte."],
+      ["Good morning", "Barra leve nas costas, joelhos levemente flexionados. Incline o tronco à frente com a coluna reta e volte."]
+    ],
+    ext: [
+      ["Extensão de quadril no banco romano", "Apoiada no banco de 45°, desça o tronco e suba apertando o glúteo."],
+      ["Hiperextensão 45° com peso", "No banco 45°, segure uma anilha junto ao peito. Desça e suba apertando o glúteo."],
+      ["Extensão de quadril na máquina", "Na máquina de glúteo, empurre a plataforma para trás com a perna esticada, sem arquear a lombar."]
+    ],
+    kick: [
+      ["Coice na polia", "Com caneleira, empurre a perna para trás e para cima, sem arquear a lombar."],
+      ["Coice na máquina", "Na máquina de glúteo, apoie o pé e empurre para trás e para cima, apertando o glúteo."],
+      ["Coice de quatro com caneleira", "De quatro no chão, com caneleira, suba a perna dobrada em direção ao teto."],
+      ["Coice no Smith", "Apoie-se no Smith, ombro na barra, e empurre a perna para trás e para cima."]
+    ],
+    ham: [
+      ["Mesa flexora", "Deitada de bruços, dobre os joelhos levando os calcanhares em direção ao glúteo."],
+      ["Cadeira flexora", "Sentada na máquina, dobre os joelhos puxando o apoio para baixo e para trás."],
+      ["Flexora em pé", "Em pé na máquina, dobre um joelho de cada vez levando o calcanhar ao glúteo."]
+    ],
+    calf: [
+      ["Panturrilha em pé", "Suba na ponta dos pés e desça alongando bem."],
+      ["Panturrilha sentada", "Sentada na máquina, suba os calcanhares e desça alongando."],
+      ["Panturrilha no leg press", "Na plataforma do leg press, empurre só com a ponta dos pés e volte alongando."]
+    ],
+    pull: [
+      ["Puxada na frente (pulley)", "Puxe a barra até a altura do queixo, levando os cotovelos para baixo e para trás."],
+      ["Puxada supinada", "Pegada com as palmas viradas para você. Puxe a barra até o peito."],
+      ["Puxada com triângulo", "Pegada neutra no triângulo. Puxe até o peito, cotovelos rentes ao corpo."],
+      ["Barra fixa assistida", "Na máquina assistida, puxe o corpo até o queixo passar da barra."]
+    ],
+    row: [
+      ["Remada sentada (cabo)", "Puxe o triângulo em direção ao abdômen, juntando as escápulas."],
+      ["Remada na máquina", "Peito apoiado, puxe as alças para trás juntando as escápulas."],
+      ["Remada unilateral com halter", "Apoie uma mão e joelho no banco. Puxe o halter em direção à cintura."],
+      ["Remada curvada com halteres", "Tronco inclinado à frente, puxe os halteres em direção à cintura."],
+      ["Remada cavalinho", "Na barra T, tronco inclinado, puxe a carga em direção ao peito."]
+    ],
+    press: [
+      ["Supino inclinado com halteres", "Banco inclinado. Empurre os halteres para cima e desça até a linha do peito."],
+      ["Supino inclinado na máquina", "Sentada na máquina inclinada, empurre as alças para frente e volte devagar."],
+      ["Supino reto com halteres", "Deitada no banco reto, empurre os halteres para cima e desça até o peito."],
+      ["Flexão de braço inclinada", "Mãos num banco, corpo reto. Dobre os cotovelos e empurre de volta."]
+    ],
+    fly: [
+      ["Crucifixo ou peck deck", "Abra e feche os braços na máquina, sentindo o peitoral."],
+      ["Crucifixo com halteres", "Deitada no banco, abra os braços com cotovelos levemente dobrados e feche."],
+      ["Crossover na polia", "De pé entre as polias, traga as mãos à frente do corpo apertando o peitoral."]
+    ],
+    shoulder: [
+      ["Desenvolvimento com halteres", "Sentada, empurre os halteres da altura das orelhas até em cima."],
+      ["Desenvolvimento na máquina", "Sentada, empurre as alças para cima e volte devagar."],
+      ["Arnold press", "Comece com palmas viradas para você e gire enquanto empurra os halteres para cima."]
+    ],
+    lateral: [
+      ["Elevação lateral", "Braços ao lado do corpo, suba os halteres até a altura dos ombros."],
+      ["Elevação lateral na polia", "Com a polia baixa, suba o braço para o lado até a altura do ombro."],
+      ["Elevação lateral na máquina", "Sentada na máquina, abra os braços até a altura dos ombros."]
+    ],
+    arms: [
+      ["Rosca direta + tríceps na polia", "Rosca dobrando os cotovelos com halteres. Tríceps empurrando a corda para baixo até esticar os braços."],
+      ["Rosca martelo + tríceps testa", "Rosca com pegada neutra. Tríceps testa deitada, descendo os halteres em direção à testa."],
+      ["Rosca na polia + tríceps francês", "Rosca na polia baixa. Tríceps francês com um halter atrás da cabeça."]
+    ],
+    plank: [
+      ["Prancha", "Apoiada nos antebraços e pontas dos pés, corpo reto, abdômen contraído."],
+      ["Prancha com toque no ombro", "Na posição de prancha alta, toque um ombro com a mão oposta sem girar o quadril."],
+      ["Dead bug", "Deitada, braços e pernas para cima. Estenda braço e perna opostos sem descolar a lombar."]
+    ],
+    legRaise: [
+      ["Elevação de pernas", "Deitada ou pendurada, suba as pernas até 90° sem balançar."],
+      ["Elevação de joelhos na barra", "Pendurada na barra, leve os joelhos ao peito e desça controlando."],
+      ["Abdominal infra", "Deitada, suba o quadril tirando a lombar do chão, com as pernas dobradas ou esticadas."]
+    ],
+    crunch: [
+      ["Abdominal na polia (crunch)", "Ajoelhada, corda atrás da cabeça, enrole o tronco em direção ao chão."],
+      ["Abdominal na máquina", "Sentada na máquina, flexione o tronco à frente contraindo o abdômen."],
+      ["Abdominal com halter", "Deitada, halter junto ao peito. Suba o tronco contraindo o abdômen."]
+    ],
+    sidePlank: [
+      ["Prancha lateral", "Apoiada num antebraço, quadril elevado, corpo em linha reta."],
+      ["Prancha lateral com elevação de quadril", "Na prancha lateral, desça e suba o quadril devagar."],
+      ["Abdominal oblíquo na polia", "Em pé de lado para a polia, gire o tronco puxando a corda na diagonal."]
+    ],
+    cardio: [
+      ["Cardio: bike", "Ritmo moderado, sem sobrecarregar as pernas."],
+      ["Cardio: esteira inclinada", "Caminhando com inclinação alta (12-15%)."],
+      ["Cardio: elíptico", "Ritmo leve e constante."],
+      ["Cardio: simulador de escada", "Ritmo leve, sem se apoiar demais nos corrimãos."],
+      ["Cardio: remo", "Ritmo leve, empurrando com as pernas antes de puxar com os braços."]
+    ]
+  };
+
+  function pack(list, skip) {
+    return list.filter(function (p) { return p[0] !== skip; }).map(function (p) { return { name: p[0], desc: p[1] }; });
+  }
+  var ex = function (g, name, sets, cardio) {
+    var pool = POOLS[g], cur = pool.filter(function (p) { return p[0] === name; })[0];
+    return { id: uid(), name: name, sets: sets, desc: cur ? cur[1] : "", load: "", done: false, cardio: !!cardio, alts: pack(pool, name) };
+  };
+
+  function cardioMin(base, objetivo) {
+    var f = objetivo === "emagrecer" ? 1.3 : (objetivo === "ganhar" ? 0.7 : 1);
+    var v = Math.round((base * f) / 5) * 5;
+    if (v < 10) v = 10;
+    return v + " min";
+  }
+
+  function buildPlan(foco, objetivo) {
+    var c = function (name, base) { return ex("cardio", name, cardioMin(base, objetivo), true); };
+    var days;
+    if (foco === "gluteo") {
+      days = [
+        { name: "Seg", focus: "Glúteo + quadríceps", ex: [
+          ex("quadUni", "Agachamento búlgaro", "4x8-10 por perna"), ex("quadBig", "Leg press 45° profundo", "4x10-12"),
+          ex("quadBig", "Hack squat", "3x10-12"), ex("quadIso", "Cadeira extensora", "3x12-15"),
+          ex("abd", "Abdução na polia em pé", "3x15 por perna"), c("Cardio: bike", 15)
+        ]},
+        { name: "Ter", focus: "Superior + abs", ex: [
+          ex("pull", "Puxada na frente (pulley)", "3x10"), ex("row", "Remada sentada (cabo)", "3x10"),
+          ex("press", "Supino inclinado com halteres", "3x10"), ex("shoulder", "Desenvolvimento com halteres", "3x10"),
+          ex("arms", "Rosca direta + tríceps na polia", "2x12 cada"), ex("plank", "Prancha", "3x40s"),
+          ex("legRaise", "Elevação de pernas", "3x12"), c("Cardio: esteira inclinada", 20)
+        ]},
+        { name: "Qua", focus: "Glúteo + posterior", ex: [
+          ex("hip", "Hip thrust (elevação pélvica)", "4x8-10"), ex("hinge", "Stiff / RDL", "4x8-10"),
+          ex("ext", "Extensão de quadril no banco romano", "3x12"), ex("kick", "Coice na polia", "3x12-15 por perna"),
+          ex("abd", "Cadeira abdutora", "3x15-20"), ex("ham", "Mesa flexora", "3x12"), c("Cardio: elíptico", 15)
+        ]},
+        { name: "Qui", focus: "Superior + abs", ex: [
+          ex("row", "Remada curvada com halteres", "3x10"), ex("lateral", "Elevação lateral", "3x12-15"),
+          ex("fly", "Crucifixo ou peck deck", "3x12"), ex("crunch", "Abdominal na polia (crunch)", "3x12"),
+          ex("legRaise", "Abdominal infra", "3x15"), ex("sidePlank", "Prancha lateral", "3x30s por lado"),
+          c("Cardio: esteira inclinada", 25)
+        ]},
+        { name: "Sex", focus: "Pernas completo", ex: [
+          ex("quadBig", "Agachamento livre profundo", "4x8-10"), ex("quadUni", "Leg press unilateral", "3x10 por perna"),
+          ex("quadUni", "Afundo caminhando", "3x12 por perna"), ex("abd", "Abdução apoiada no banco", "3x15-20"),
+          ex("hipUni", "Hip thrust unilateral", "3x10 por perna"), ex("calf", "Panturrilha em pé", "4x15"),
+          c("Cardio: bike", 12)
+        ]}
+      ];
+    } else if (foco === "pernas") {
+      days = [
+        { name: "Seg", focus: "Quadríceps", ex: [
+          ex("quadBig", "Agachamento livre profundo", "4x8-10"), ex("quadBig", "Hack squat", "3x10-12"),
+          ex("quadUni", "Leg press unilateral", "3x10 por perna"), ex("quadIso", "Cadeira extensora", "3x12-15"),
+          ex("calf", "Panturrilha em pé", "4x15"), c("Cardio: bike", 15)
+        ]},
+        { name: "Ter", focus: "Posterior + glúteo", ex: [
+          ex("hinge", "Stiff / RDL", "4x8-10"), ex("hip", "Hip thrust (elevação pélvica)", "4x8-10"),
+          ex("ham", "Mesa flexora", "3x12"), ex("ext", "Extensão de quadril no banco romano", "3x12"),
+          c("Cardio: esteira inclinada", 20)
+        ]},
+        { name: "Qua", focus: "Abdutores + abs", ex: [
+          ex("abd", "Abdução na polia em pé", "3x15 por perna"), ex("abd", "Cadeira abdutora", "3x15-20"),
+          ex("kick", "Coice na polia", "3x12-15 por perna"), ex("plank", "Prancha", "3x40s"),
+          ex("legRaise", "Abdominal infra", "3x15"), c("Cardio: elíptico", 20)
+        ]},
+        { name: "Qui", focus: "Quadríceps + unilateral", ex: [
+          ex("quadUni", "Agachamento búlgaro", "4x8-10 por perna"), ex("quadBig", "Leg press 45° profundo", "4x10-12"),
+          ex("quadUni", "Afundo caminhando", "3x12 por perna"), ex("calf", "Panturrilha sentada", "4x15"),
+          c("Cardio: esteira inclinada", 25)
+        ]},
+        { name: "Sex", focus: "Posterior + glúteo unilateral", ex: [
+          ex("hipUni", "Hip thrust unilateral", "3x10 por perna"), ex("hinge", "Stiff unilateral", "3x10 por perna"),
+          ex("ham", "Cadeira flexora", "3x12"), ex("kick", "Coice na máquina", "3x12-15 por perna"),
+          ex("crunch", "Abdominal na polia (crunch)", "3x12"), c("Cardio: bike", 12)
+        ]}
+      ];
+    } else if (foco === "superior") {
+      days = [
+        { name: "Seg", focus: "Peito e costas", ex: [
+          ex("press", "Supino inclinado com halteres", "3x10"), ex("pull", "Puxada na frente (pulley)", "3x10"),
+          ex("row", "Remada sentada (cabo)", "3x10"), ex("fly", "Crucifixo ou peck deck", "3x12"),
+          ex("plank", "Prancha", "3x40s"), c("Cardio: bike", 15)
+        ]},
+        { name: "Ter", focus: "Pernas (manutenção)", ex: [
+          ex("quadBig", "Leg press 45° profundo", "3x10-12"), ex("hip", "Hip thrust (elevação pélvica)", "3x10"),
+          ex("abd", "Abdução na polia em pé", "3x15 por perna"), c("Cardio: esteira inclinada", 20)
+        ]},
+        { name: "Qua", focus: "Ombro e costas", ex: [
+          ex("shoulder", "Desenvolvimento com halteres", "3x10"), ex("lateral", "Elevação lateral", "3x12-15"),
+          ex("row", "Remada curvada com halteres", "3x10"), ex("fly", "Crossover na polia", "3x12"),
+          ex("crunch", "Abdominal na polia (crunch)", "3x12"), c("Cardio: elíptico", 15)
+        ]},
+        { name: "Qui", focus: "Pernas (manutenção)", ex: [
+          ex("hinge", "Stiff / RDL", "3x10"), ex("quadUni", "Afundo caminhando", "3x12 por perna"),
+          ex("calf", "Panturrilha em pé", "4x15"), c("Cardio: esteira inclinada", 20)
+        ]},
+        { name: "Sex", focus: "Braços e abs", ex: [
+          ex("arms", "Rosca direta + tríceps na polia", "3x12 cada"), ex("pull", "Puxada supinada", "3x10"),
+          ex("press", "Supino reto com halteres", "3x10"), ex("sidePlank", "Prancha lateral", "3x30s por lado"),
+          ex("legRaise", "Elevação de pernas", "3x12"), c("Cardio: bike", 12)
+        ]}
+      ];
+    } else {
+      days = [
+        { name: "Seg", focus: "Corpo inteiro A", ex: [
+          ex("quadBig", "Leg press 45° profundo", "3x10-12"), ex("hip", "Hip thrust (elevação pélvica)", "3x10"),
+          ex("row", "Remada sentada (cabo)", "3x10"), ex("shoulder", "Desenvolvimento com halteres", "3x10"),
+          ex("plank", "Prancha", "3x40s"), c("Cardio: bike", 15)
+        ]},
+        { name: "Ter", focus: "Corpo inteiro B", ex: [
+          ex("quadUni", "Agachamento búlgaro", "3x10 por perna"), ex("hinge", "Stiff / RDL", "3x10"),
+          ex("press", "Supino inclinado com halteres", "3x10"), ex("lateral", "Elevação lateral", "3x12-15"),
+          ex("legRaise", "Elevação de pernas", "3x12"), c("Cardio: esteira inclinada", 20)
+        ]},
+        { name: "Qua", focus: "Corpo inteiro C", ex: [
+          ex("abd", "Abdução na polia em pé", "3x15 por perna"), ex("ext", "Extensão de quadril no banco romano", "3x12"),
+          ex("pull", "Puxada na frente (pulley)", "3x10"), ex("arms", "Rosca direta + tríceps na polia", "2x12 cada"),
+          ex("sidePlank", "Prancha lateral", "3x30s por lado"), c("Cardio: elíptico", 15)
+        ]},
+        { name: "Qui", focus: "Corpo inteiro D", ex: [
+          ex("quadIso", "Cadeira extensora", "3x12-15"), ex("kick", "Coice na polia", "3x12-15 por perna"),
+          ex("fly", "Crucifixo ou peck deck", "3x12"), ex("crunch", "Abdominal na polia (crunch)", "3x12"),
+          c("Cardio: esteira inclinada", 20)
+        ]},
+        { name: "Sex", focus: "Corpo inteiro E", ex: [
+          ex("ham", "Mesa flexora", "3x12"), ex("hipUni", "Hip thrust unilateral", "3x10 por perna"),
+          ex("row", "Remada curvada com halteres", "3x10"), ex("calf", "Panturrilha em pé", "4x15"),
+          c("Cardio: bike", 12)
+        ]}
+      ];
+    }
+    return days.map(function (d) { return { id: uid(), name: d.name, focus: d.focus, ex: d.ex }; });
+  }
+
+  function computeDiet(p) {
+    var w = p.peso, h = p.altura, a = p.idade;
+    var bmr = p.sexo === "M" ? (10 * w + 6.25 * h - 5 * a + 5) : (10 * w + 6.25 * h - 5 * a - 161);
+    var fac = { sedentario: 1.2, leve: 1.375, moderado: 1.55, ativo: 1.725 }[p.atividade] || 1.375;
+    var tdee = bmr * fac;
+    var kcal = p.objetivo === "ganhar" ? tdee + 300 : (p.objetivo === "emagrecer" ? Math.max(1200, tdee - 400) : tdee);
+    var proteinG = (p.objetivo === "manter" ? 1.8 : 2.0) * w;
+    var fatG = (kcal * 0.25) / 9;
+    var carbG = Math.max(0, (kcal - proteinG * 4 - fatG * 9) / 4);
+    return { bmr: Math.round(bmr), tdee: Math.round(tdee), kcal: Math.round(kcal), proteinG: Math.round(proteinG), fatG: Math.round(fatG), carbG: Math.round(carbG) };
+  }
+
+  var MEAL_IDEAS = {
+    cafe: [
+      ["Ovos mexidos + pão integral + fruta", "2-3 ovos, uma fatia de pão integral e uma fruta da estação."],
+      ["Iogurte natural + aveia + frutas vermelhas", "Iogurte integral ou proteico, aveia em flocos e frutas."],
+      ["Tapioca com ovo e queijo branco", "Tapioca recheada com ovo mexido e um queijo magro."],
+      ["Panqueca de banana e aveia + pasta de amendoim", "Panqueca simples de banana amassada, ovo e aveia."]
+    ],
+    almoco: [
+      ["Frango grelhado + arroz + feijão + salada", "Uma porção de proteína magra, carboidrato e bastante vegetal."],
+      ["Carne moída + batata-doce + legumes refogados", "Boa opção pré ou pós-treino, com carboidrato de digestão mais lenta."],
+      ["Peixe assado + quinoa ou arroz + brócolis", "Opção leve e rica em proteína de boa qualidade."],
+      ["Tofu ou grão-de-bico + arroz integral + salada colorida", "Opção vegetariana com boa quantidade de proteína vegetal."]
+    ],
+    lanche: [
+      ["Whey ou iogurte proteico + fruta", "Prático para antes ou depois do treino."],
+      ["Castanhas + fruta", "Fonte de gordura boa e energia rápida."],
+      ["Sanduíche natural de frango ou atum", "Pão integral, proteína magra e vegetais."],
+      ["Vitamina de banana com leite e aveia", "Boa opção antes do treino, com carboidrato e um pouco de proteína."]
+    ],
+    jantar: [
+      ["Omelete de legumes + salada", "Leve e rica em proteína, boa opção para a noite."],
+      ["Sopa de legumes com frango desfiado", "Reconfortante e com boa densidade de nutrientes."],
+      ["Peixe ou frango grelhado + legumes assados", "Refeição leve, com pouco carboidrato à noite."],
+      ["Wrap integral com proteína e vegetais", "Prático quando o tempo é curto."]
+    ]
+  };
+  function mealIdeas(objetivo, rnd) {
+    function pick(key) { var l = MEAL_IDEAS[key]; return l[rnd % l.length]; }
+    return { cafe: pick("cafe"), almoco: pick("almoco"), lanche: pick("lanche"), jantar: pick("jantar") };
+  }
+
+  function norm(s) { return String(s || "").toLowerCase().replace(/\s*\(.*?\)\s*/g, " ").trim(); }
+  function migrate(d) {
+    if (!d.days) return d;
+    d.days.forEach(function (day) {
+      day.ex.forEach(function (e) {
+        if (Array.isArray(e.alts)) return;
+        e.alts = [];
+        var keys = Object.keys(POOLS);
+        for (var k = 0; k < keys.length; k++) {
+          var pool = POOLS[keys[k]];
+          var hit = pool.some(function (p) { return norm(p[0]) === norm(e.name); });
+          if (hit || (e.cardio && keys[k] === "cardio")) {
+            e.alts = pool.filter(function (p) { return norm(p[0]) !== norm(e.name); }).map(function (p) { return { name: p[0], desc: p[1] }; });
+            if (hit) break;
+          }
+          if (e.cardio && keys[k] === "cardio") break;
+        }
+      });
+    });
+    return d;
+  }
+
+  var S, editing = false, restoreArmed = false, toastTimer, openSwap = null;
+  var draft = { sexo: "F", atividade: "sedentario", objetivo: "ganhar", foco: "gluteo" };
+
+  function empty() { return { profile: null, view: "treino", active: 0, days: [], mealSeed: 0 }; }
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) { var d = JSON.parse(raw); if (d) return migrate(d); }
+    } catch (e) {}
+    return empty();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function toast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, 2200);
+  }
+  function videoUrl(name) { return "https://www.youtube.com/results?search_query=" + encodeURIComponent(String(name).replace(/\s*\(.*?\)\s*/g, " ").trim() + " como fazer"); }
+  function day() { return S.days[S.active] || S.days[0]; }
+  var FOCO_LABEL = { gluteo: "Glúteo e pernas", pernas: "Pernas (geral)", corpo: "Corpo todo equilibrado", superior: "Parte superior" };
+  var OBJ_LABEL = { ganhar: "Ganhar massa", manter: "Manter / tonificar", emagrecer: "Emagrecer" };
+  var ATIV_LABEL = { sedentario: "Sedentária", leve: "Leve", moderado: "Moderada", ativo: "Ativa" };
+
+  function renderTabs() {
+    document.getElementById("tabs").innerHTML = S.days.map(function (d, i) {
+      return '<button class="tab" role="tab" type="button" data-tab="' + i + '" aria-selected="' + (i === S.active) + '">' + esc(d.name) + '<small>' + d.ex.filter(function (e) { return e.done; }).length + '/' + d.ex.length + '</small></button>';
+    }).join("");
+  }
+
+  function renderDay() {
+    var d = day();
+    if (!d) { document.getElementById("day").innerHTML = ""; return; }
+    var done = d.ex.filter(function (e) { return e.done; }).length;
+    var pct = d.ex.length ? Math.round(done / d.ex.length * 100) : 0;
+    var h = '<div class="day-head">';
+    if (editing) {
+      h += '<div class="edit-fields"><input type="text" data-day="name" value="' + esc(d.name) + '" aria-label="Nome do dia"><input type="text" data-day="focus" value="' + esc(d.focus) + '" aria-label="Foco do treino"></div>';
+    } else {
+      h += '<h2 class="day-title">' + esc(d.focus) + '</h2>';
+    }
+    h += '<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><i style="width:' + pct + '%"></i></div>';
+    h += '<div class="progress-label"><span>' + done + ' de ' + d.ex.length + ' feitos</span><span>' + pct + '%</span></div></div>';
+
+    h += d.ex.map(function (e, i) {
+      var s = '<article class="ex' + (e.done ? " done" : "") + (e.cardio ? " cardio" : "") + '" data-i="' + i + '"><div class="ex-row">';
+      s += '<button class="check" type="button" data-act="toggle" aria-pressed="' + e.done + '" aria-label="Marcar ' + esc(e.name) + ' como feito"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>';
+      s += '<div class="ex-main">';
+      if (editing) {
+        s += '<div class="edit-fields"><input type="text" data-f="name" value="' + esc(e.name) + '" aria-label="Nome do exercício"><input type="text" data-f="sets" value="' + esc(e.sets) + '" aria-label="Séries e repetições"><textarea data-f="desc" aria-label="Como fazer">' + esc(e.desc) + '</textarea></div>';
+        s += '<div class="edit-bar"><button class="btn" type="button" data-act="up" aria-label="Mover para cima">Subir</button><button class="btn" type="button" data-act="down" aria-label="Mover para baixo">Descer</button><button class="btn danger" type="button" data-act="del">Excluir</button></div>';
+      } else {
+        s += '<p class="ex-name">' + esc(e.name) + '</p><div class="ex-sets">' + esc(e.sets) + '</div>';
+        if (e.desc) s += '<p class="ex-desc">' + esc(e.desc) + '</p>';
+        if (!e.cardio) s += '<label class="load">Carga <input type="text" data-f="load" value="' + esc(e.load) + '" placeholder="ex.: 40 kg" aria-label="Carga usada em ' + esc(e.name) + '"></label>';
+        s += '<div class="ex-actions">';
+        if (!e.cardio) s += '<a class="btn small" href="' + videoUrl(e.name) + '" target="_blank" rel="noopener noreferrer">Ver vídeo</a>';
+        if (e.alts && e.alts.length) s += '<button class="btn small" type="button" data-act="swap" aria-expanded="' + (openSwap === i) + '">Trocar</button>';
+        s += '</div>';
+        if (openSwap === i && e.alts) {
+          s += '<div class="swap"><p class="swap-title">Trocar por uma variação</p>' + e.alts.map(function (a, k) {
+            return '<button class="swap-opt" type="button" data-act="pick" data-k="' + k + '"><b>' + esc(a.name) + '</b><span>' + esc(a.desc) + '</span></button>';
+          }).join("") + '</div>';
+        }
+      }
+      s += '</div></div></article>';
+      return s;
+    }).join("");
+
+    if (editing) h += '<div class="footer-actions"><button class="btn primary" type="button" data-act="add">Adicionar exercício</button><button class="btn" type="button" data-act="addcardio">Adicionar cardio</button></div>';
+    document.getElementById("day").innerHTML = h;
+  }
+
+  function renderDieta() {
+    var p = S.profile, el = document.getElementById("viewDieta");
+    if (!p) { el.innerHTML = ""; return; }
+    var d = computeDiet(p);
+    var m = mealIdeas(p.objetivo, S.mealSeed || 0);
+    el.innerHTML =
+      '<section class="panel">' +
+      '<div class="diet-hero"><div class="diet-kcal">' + d.kcal + '<small>kcal por dia (estimativa)</small></div></div>' +
+      '<div class="diet-grid">' +
+        '<div class="diet-card"><b>' + d.proteinG + 'g</b><span>Proteína</span></div>' +
+        '<div class="diet-card"><b>' + d.carbG + 'g</b><span>Carboidrato</span></div>' +
+        '<div class="diet-card"><b>' + d.fatG + 'g</b><span>Gordura</span></div>' +
+      '</div>' +
+      '<p class="profile-recap">' + esc(p.altura) + ' cm · ' + esc(p.peso) + ' kg · ' + esc(p.idade) + ' anos · atividade ' + esc(ATIV_LABEL[p.atividade]) + ' · objetivo: ' + esc(OBJ_LABEL[p.objetivo]) + '</p>' +
+      '<p class="profile-recap">Gasto calórico estimado em repouso: ' + d.bmr + ' kcal. Gasto total estimado no dia: ' + d.tdee + ' kcal.</p>' +
+      '<div class="disclaimer">Esses números são uma estimativa geral, calculada por fórmula, e não substituem uma avaliação individual. O ideal é ajustar sua dieta com um nutricionista e o treino com um educador físico ou personal trainer, especialmente se você tiver alguma condição de saúde.</div>' +
+      '</section>' +
+      '<section class="panel">' +
+      '<h2>Ideias de refeições</h2>' +
+      '<p>Sugestões gerais de combinações, para dar ideia de como distribuir a dieta ao longo do dia. Ajuste as porções conforme sua fome e seus objetivos.</p>' +
+      mealBlock("Café da manhã", m.cafe) + mealBlock("Almoço", m.almoco) + mealBlock("Lanche", m.lanche) + mealBlock("Jantar", m.jantar) +
+      '<div class="row"><button class="btn" type="button" id="btnShuffleMeals">Ver outras ideias</button></div>' +
+      '<div class="disclaimer">Isso não é um cardápio fechado nem leva em conta alergias, restrições ou condições de saúde. Use como inspiração e, se precisar de algo mais preciso, procure um nutricionista.</div>' +
+      '</section>';
+    var sb = document.getElementById("btnShuffleMeals");
+    if (sb) sb.addEventListener("click", function () { S.mealSeed = (S.mealSeed || 0) + 1; save(); renderDieta(); });
+  }
+  function mealBlock(title, opt) {
+    return '<div class="meal-block"><h3>' + esc(title) + '</h3><div class="meal-opt"><b>' + esc(opt[0]) + '</b><br><span style="color:var(--muted);font-size:13px">' + esc(opt[1]) + '</span></div></div>';
+  }
+
+  function render() {
+    renderTabs(); renderDay(); renderDieta();
+    var b = document.getElementById("btnEdit");
+    b.textContent = editing ? "Concluir" : "Editar";
+    b.classList.toggle("on", editing);
+    document.getElementById("btnReset").hidden = editing;
+    var t = S.view === "dieta";
+    document.getElementById("segTreino").setAttribute("aria-selected", String(!t));
+    document.getElementById("segDieta").setAttribute("aria-selected", String(t));
+    document.getElementById("viewTreino").hidden = t;
+    document.getElementById("viewDieta").hidden = !t;
+  }
+
+  function planText() {
+    var t = "Meu Treino: Geração Rápida\n\n" + S.days.map(function (d) {
+      return d.name + " — " + d.focus + "\n" + d.ex.map(function (e) {
+        return "• " + e.name + " (" + e.sets + ")" + (e.load ? " — " + e.load : "");
+      }).join("\n");
+    }).join("\n\n");
+    if (S.profile) {
+      var d = computeDiet(S.profile);
+      t += "\n\nDieta estimada (aproximada, ajuste com um nutricionista)\n" + d.kcal + " kcal · proteína " + d.proteinG + "g · carboidrato " + d.carbG + "g · gordura " + d.fatG + "g";
+    }
+    return t;
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+    return new Promise(function (res, rej) {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy") ? res() : rej(); } catch (e) { rej(e); }
+      document.body.removeChild(ta);
+    });
+  }
+
+  document.getElementById("segTreino").addEventListener("click", function () { S.view = "treino"; save(); render(); });
+  document.getElementById("segDieta").addEventListener("click", function () { S.view = "dieta"; save(); render(); });
+
+  document.getElementById("tabs").addEventListener("click", function (ev) {
+    var t = ev.target.closest("[data-tab]"); if (!t) return;
+    S.active = +t.dataset.tab; openSwap = null; save(); render();
+  });
+
+  document.getElementById("day").addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-act]"); if (!b) return;
+    var d = day(), card = b.closest(".ex"), i = card ? +card.dataset.i : -1, a = b.dataset.act;
+    if (a === "toggle") d.ex[i].done = !d.ex[i].done;
+    else if (a === "del") d.ex.splice(i, 1);
+    else if (a === "up" && i > 0) { var t = d.ex[i]; d.ex[i] = d.ex[i - 1]; d.ex[i - 1] = t; }
+    else if (a === "down" && i < d.ex.length - 1) { var t2 = d.ex[i]; d.ex[i] = d.ex[i + 1]; d.ex[i + 1] = t2; }
+    else if (a === "swap") { openSwap = openSwap === i ? null : i; render(); return; }
+    else if (a === "pick") {
+      var e = d.ex[i], k = +b.dataset.k, chosen = e.alts[k];
+      if (chosen) {
+        e.alts[k] = { name: e.name, desc: e.desc };
+        e.name = chosen.name; e.desc = chosen.desc; e.load = "";
+        openSwap = null; save(); render(); toast("Trocado por " + e.name);
+      }
+      return;
+    }
+    else if (a === "add") d.ex.push({ id: uid(), name: "Novo exercício", sets: "3x10", desc: "", load: "", done: false, cardio: false, alts: [] });
+    else if (a === "addcardio") d.ex.push({ id: uid(), name: "Cardio", sets: "15 min", desc: "", load: "", done: false, cardio: true, alts: pack(POOLS.cardio, "") });
+    save(); render();
+  });
+
+  document.getElementById("day").addEventListener("change", function (ev) {
+    var el = ev.target, d = day();
+    if (el.dataset.day) { d[el.dataset.day] = el.value; save(); renderTabs(); return; }
+    var card = el.closest(".ex");
+    if (card && el.dataset.f) { d.ex[+card.dataset.i][el.dataset.f] = el.value; save(); }
+  });
+
+  document.getElementById("btnEdit").addEventListener("click", function () { editing = !editing; openSwap = null; render(); });
+
+  document.getElementById("btnReset").addEventListener("click", function () {
+    day().ex.forEach(function (e) { e.done = false; });
+    save(); render(); toast("Treino de " + day().name + " limpo");
+  });
+
+  document.getElementById("btnShare").addEventListener("click", function () {
+    var text = planText();
+    if (navigator.share) navigator.share({ title: "Meu Treino: Geração Rápida", text: text }).catch(function () {});
+    else copyText(text).then(function () { toast("Treino copiado"); }, function () { toast("Não foi possível copiar"); });
+  });
+
+  var panel = document.getElementById("backupPanel"), area = document.getElementById("backupText");
+  document.getElementById("btnBackup").addEventListener("click", function () {
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) { area.value = JSON.stringify(S); panel.scrollIntoView({ behavior: "smooth", block: "nearest" }); }
+  });
+  document.getElementById("btnCopyBackup").addEventListener("click", function () {
+    copyText(area.value).then(function () { toast("Backup copiado"); }, function () { area.select(); toast("Selecione e copie o texto"); });
+  });
+  document.getElementById("btnImport").addEventListener("click", function () {
+    try {
+      var d = JSON.parse(area.value);
+      if (!d || !Array.isArray(d.days) || !d.days.length) throw 0;
+      S = migrate(d); if (!S.view) S.view = "treino"; S.active = 0; save(); render(); toast("Treino importado");
+    } catch (e) { toast("Texto de backup inválido"); }
+  });
+  document.getElementById("btnRestore").addEventListener("click", function (ev) {
+    var b = ev.currentTarget;
+    if (!restoreArmed) {
+      restoreArmed = true; b.textContent = "Toque de novo para confirmar";
+      setTimeout(function () { restoreArmed = false; b.textContent = "Gerar treino padrão"; }, 3000);
+      return;
+    }
+    restoreArmed = false; b.textContent = "Gerar treino padrão";
+    var p = S.profile || { sexo: "F", idade: 25, altura: 160, peso: 60, atividade: "sedentario", objetivo: "ganhar" };
+    S.days = buildPlan("gluteo", p.objetivo); S.active = 0; save(); area.value = JSON.stringify(S); render();
+    toast("Treino padrão gerado");
+  });
+
+  document.getElementById("btnProfile").addEventListener("click", openOnboarding);
+
+  // ---- onboarding ----
+  function choiceGroup(id, onPick) {
+    var wrap = document.getElementById(id);
+    wrap.addEventListener("click", function (ev) {
+      var b = ev.target.closest("button"); if (!b) return;
+      Array.prototype.forEach.call(wrap.querySelectorAll("button"), function (x) { x.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      onPick(b.dataset.v);
+    });
+  }
+  choiceGroup("fSexo", function (v) { draft.sexo = v; });
+  choiceGroup("fAtividade", function (v) { draft.atividade = v; });
+  choiceGroup("fObjetivo", function (v) { draft.objetivo = v; });
+  choiceGroup("fFoco", function (v) { draft.foco = v; });
+
+  function setChoice(id, v) {
+    var wrap = document.getElementById(id);
+    Array.prototype.forEach.call(wrap.querySelectorAll("button"), function (x) { x.setAttribute("aria-pressed", String(x.dataset.v === v)); });
+  }
+
+  function openOnboarding() {
+    if (S.profile) {
+      draft = { sexo: S.profile.sexo, atividade: S.profile.atividade, objetivo: S.profile.objetivo, foco: S.profile.foco };
+      document.getElementById("fIdade").value = S.profile.idade;
+      document.getElementById("fAltura").value = S.profile.altura;
+      document.getElementById("fPeso").value = S.profile.peso;
+      setChoice("fSexo", draft.sexo); setChoice("fAtividade", draft.atividade);
+      setChoice("fObjetivo", draft.objetivo); setChoice("fFoco", draft.foco);
+      document.getElementById("btnGerar").textContent = "Atualizar meu treino e dieta";
+    } else {
+      document.getElementById("btnGerar").textContent = "Gerar meu treino e dieta";
+    }
+    document.getElementById("formErr").hidden = true;
+    document.getElementById("onboarding").hidden = false;
+    document.getElementById("app").hidden = true;
+  }
+
+  document.getElementById("profileForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var idade = parseInt(document.getElementById("fIdade").value, 10);
+    var altura = parseFloat(document.getElementById("fAltura").value);
+    var peso = parseFloat(document.getElementById("fPeso").value);
+    var ok = idade > 0 && idade < 100 && altura > 0 && altura < 260 && peso > 0 && peso < 400;
+    if (!ok) { document.getElementById("formErr").hidden = false; return; }
+    var hadProfile = !!S.profile;
+    if (hadProfile && !confirm("Isso vai gerar um novo treino com base nos novos dados e apagar as marcações feitas. Continuar?")) return;
+    S.profile = { sexo: draft.sexo, idade: idade, altura: altura, peso: peso, atividade: draft.atividade, objetivo: draft.objetivo, foco: draft.foco };
+    S.days = buildPlan(draft.foco, draft.objetivo);
+    S.active = 0; S.view = "treino";
+    save();
+    document.getElementById("onboarding").hidden = true;
+    document.getElementById("app").hidden = false;
+    render();
+    toast(hadProfile ? "Treino atualizado" : "Treino gerado para você");
+  });
+
+  S = load();
+  if (!S.view) S.view = "treino";
+  if (S.profile) {
+    if (S.active >= S.days.length) S.active = 0;
+    document.getElementById("app").hidden = false;
+    render();
+  } else {
+    openOnboarding();
+  }
+})();
+</script>
+</body>
+</html>
